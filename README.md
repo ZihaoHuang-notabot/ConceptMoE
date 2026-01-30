@@ -1,10 +1,8 @@
 ![seed](bytedance.jpeg)
 
-# ConceptMoE: Adaptive Concept-Level Processing for Efficient Language Models
+# ConceptMoE: Adaptive Token-to-Concept Compression for Implicit Compute Allocation
 
-<!-- [![Paper](https://img.shields.io/badge/Paper-arXiv-red)](your-arxiv-link)
-[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
-[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/) -->
+[![Paper](https://img.shields.io/badge/Paper-arXiv-red)](https://arxiv.org/abs/2601.21420)
 
 Official implementation of **ConceptMoE: Learning to Compress Tokens into Concepts for Implicit Compute Allocation**.
 
@@ -53,7 +51,7 @@ python3 ConceptMoE_demo.py
 If you find ConceptMoE useful in your research, please cite:
 ```bibtex
 @article{conceptmoe2025,
-  title={ConceptMoE: Learning to Compress Tokens into Concepts for Implicit Compute Allocation},
+  title={ConceptMoE: Adaptive Token-to-Concept Compression for Implicit Compute Allocation},
   author={Zihao Huang and Jundong Zhou and Xingwei Qu and Qiyang Min and Ge Zhang},
   journal={arXiv preprint arXiv:2601.21420},
   year={2026}
