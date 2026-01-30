@@ -48,3 +48,14 @@ We evaluate inference latency using MoE baseline across five ConceptMoE configur
 python3 ConceptMoE_demo.py
 ```
 
+## 📝 Citation
+
+If you find ConceptMoE useful in your research, please cite:
+```bibtex
+@article{conceptmoe2025,
+  title={ConceptMoE: Learning to Compress Tokens into Concepts for Implicit Compute Allocation},
+  author={Zihao Huang and Jundong Zhou and Xingwei Qu and Qiyang Min and Ge Zhang},
+  journal={arXiv preprint arXiv:2601.21420},
+  year={2026}
+}
+```
