@@ -10,12 +10,29 @@ except:
     mamba_chunk_scan_combined = None
 
 
+def sharpen_prob_power(p, sharp_rate):
+    """
+    使用幂次变换
+    sharp_rate > 1: 更尖锐
+    sharp_rate = 1: 不变
+    sharp_rate < 1: 更平滑
+    """
+    # 对于p > 0.5，使用 p^(1/sharp_rate)
+    # 对于p < 0.5，使用 1 - (1-p)^(1/sharp_rate)
+    sharpened_p = torch.where(
+        p > 0.5,
+        torch.pow(p, 1.0 / sharp_rate),
+        1.0 - torch.pow(1.0 - p, 1.0 / sharp_rate)
+    )
+    return sharpened_p
+
 class ChunkModule(nn.Module):
     def __init__(self, hidden_size=2048, compress_ratio=2):
         super().__init__()
         self.q_proj_layer = nn.Linear(hidden_size, hidden_size, bias=False)
         self.k_proj_layer = nn.Linear(hidden_size, hidden_size, bias=False)
         self.R = compress_ratio
+        self.bound_prob_sharp_rate = 6
     
     def forward(self, hidden_states):
         cos_sim = torch.einsum(
@@ -31,7 +48,13 @@ class ChunkModule(nn.Module):
         G = boundary_prob.mean()    # for aux loss
 
         selected_idx = torch.zeros_like(boundary_prob, dtype=torch.long)
-        boundary_mask = boundary_prob >= 0.5
+
+        if self.training:
+            sharp_boundary_prob = sharpen_prob_power(boundary_prob, self.bound_prob_sharp_rate)
+            boundary_mask = torch.bernoulli(sharp_boundary_prob).bool()
+        else:
+            boundary_mask = boundary_prob >= 0.5
+
         selected_idx[..., boundary_mask] = 1
         boundary_prob = torch.stack(((1 - boundary_prob), boundary_prob), dim=-1)
 
