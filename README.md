@@ -4,7 +4,7 @@
 
 [![Paper](https://img.shields.io/badge/Paper-arXiv-red)](https://arxiv.org/abs/2601.21420)
 
-Official implementation of **ConceptMoE: Learning to Compress Tokens into Concepts for Implicit Compute Allocation**.
+Official implementation of **ConceptMoE: Adaptive Token-to-Concept Compression for Implicit Compute Allocation**.
 
 ConceptMoE elevates language model processing from token level to concept level through learnable adaptive chunking. By dynamically merging semantically similar tokens into unified concepts, ConceptMoE achieves superior performance while reducing computational costs.
 
