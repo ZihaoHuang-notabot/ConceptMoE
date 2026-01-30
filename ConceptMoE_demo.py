@@ -11,10 +11,11 @@ except:
 
 
 class ChunkModule(nn.Module):
-    def __init__(self, hidden_size=2048):
+    def __init__(self, hidden_size=2048, compress_ratio=2):
         super().__init__()
         self.q_proj_layer = nn.Linear(hidden_size, hidden_size, bias=False)
         self.k_proj_layer = nn.Linear(hidden_size, hidden_size, bias=False)
+        self.R = compress_ratio
     
     def forward(self, hidden_states):
         cos_sim = torch.einsum(
@@ -27,15 +28,22 @@ class ChunkModule(nn.Module):
         PAD_PROB = 1.0
         boundary_prob = F.pad(boundary_prob, (1, 0), "constant", PAD_PROB) # shape [1024,]
 
+        G = boundary_prob.mean()    # for aux loss
+
         selected_idx = torch.zeros_like(boundary_prob, dtype=torch.long)
         boundary_mask = boundary_prob >= 0.5
         selected_idx[..., boundary_mask] = 1
         boundary_prob = torch.stack(((1 - boundary_prob), boundary_prob), dim=-1)
 
+        Freq = boundary_mask.float().mean()    # for aux loss
+        aux_loss = self.R/(self.R-1) * ((self.R-1)*Freq*G+(1-Freq)*(1-G))
+            
+
+
         selected_probs = boundary_prob.gather(
                     dim=-1, index=selected_idx.unsqueeze(-1)
                 )  # (shape hidden_states.shape[:-1], 1)
-        return boundary_prob, boundary_mask, selected_probs
+        return boundary_prob, boundary_mask, selected_probs, aux_loss
     
 def get_seq_idx(cu_seqlens, device=None):
     seq_idx = torch.zeros(cu_seqlens[-1], dtype=torch.long, device=device)
@@ -148,7 +156,7 @@ class ConceptMoE(nn.Module):
             hidden_state = layer(hidden_state)
 
         # chunk
-        boundary_prob, boundary_mask, selected_probs = self.chunk_module(hidden_state)
+        boundary_prob, boundary_mask, selected_probs, aux_loss = self.chunk_module(hidden_state)
 
         # main network
         concept = hidden_state[boundary_mask].unsqueeze(0)            # shape [1, 522, 2048]
@@ -164,11 +172,11 @@ class ConceptMoE(nn.Module):
             hidden_state = layer(hidden_state, concept_merge)  # joint decoding
 
         logits = self.lm_head(hidden_state)
-        return logits
+        return logits, aux_loss
 
 
 if __name__ == "__main__":
     model = ConceptMoE().cuda()
     input_ids = torch.randint(0, 32000, (1, 1024)).cuda()
-    logits = model(input_ids)
-    print(logits.shape)
+    logits, aux_loss = model(input_ids)
+    print(logits.shape, aux_loss)
