@@ -37,8 +37,8 @@ class ChunkModule(nn.Module):
     def forward(self, hidden_states):
         cos_sim = torch.einsum(
                     "b l d, b l d -> b l",
-                    F.normalize(self.q_proj_layer(hidden_states[:, :-1]), dim=-1),
-                    F.normalize(self.k_proj_layer(hidden_states[:, 1:]), dim=-1),
+                    F.normalize(self.q_proj_layer(hidden_states[:, 1:]), dim=-1),
+                    F.normalize(self.k_proj_layer(hidden_states[:, :-1]), dim=-1),
                             )       # shape [1023,]
         boundary_prob = torch.clamp(((1 - cos_sim) / 2), min=0.0, max=1.0)  # shape [1023,]
         # Force boundary probability of the first element to 1.0
